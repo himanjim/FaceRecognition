@@ -1,6 +1,6 @@
 import os, time, shutil
 import face_recognition
-from multiprocessing import Pool, Queue
+from multiprocessing import Pool
 import csv, re
 
 NAME = 'name'
