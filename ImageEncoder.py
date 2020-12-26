@@ -9,7 +9,7 @@ from itertools import repeat
 image_dirs = [PARENT_DIR + 'img_dir1/', PARENT_DIR + 'img_dir2/', PARENT_DIR + 'img_dir3/']
 # image_dirs = [PARENT_DIR + 'BAL_Crop_images/', PARENT_DIR + 'BSNL_Crop_images/', PARENT_DIR + 'RJIL_Crop_images/', PARENT_DIR + 'VIL_Crop_images/']
 pool_size = 8
-max_images_to_encode = -1
+max_images_to_encode = None
 
 
 def read_dirs(dirs):
@@ -26,28 +26,29 @@ def encode_image(img, Uencodable_faces):
         face_encoding = face_recognition.face_encodings (face_recognition.load_image_file (img))
     except Exception as err:
         print('Error while encoding:' + img + str(err))
-        return [mobile_no, None]
+        return [mobile_no, None, img]
 
     if face_encoding is None or len (face_encoding) == 0:
-        print('Erro')
-        Uencodable_faces.put('Cannot encode:' + img)
-        return [mobile_no, None]
-    return [mobile_no, face_encoding[0]]
+        Uencodable_faces.append('Cannot encode:' + img)
+        return [mobile_no, None, img]
+    return [mobile_no, face_encoding[0], img]
 
 
-def encode_images_task_executor (Uencodable_faces):
+def encode_images_task_executor ():
+    Uencodable_faces = Manager().list()
+
     p = Pool (pool_size)
     encs = p.starmap (encode_image, zip(images[0:max_images_to_encode], repeat(Uencodable_faces)))
     p.close()
-    return encs
+    return encs, Uencodable_faces
 
 if __name__ == '__main__':
     images = read_dirs(image_dirs)
 
     start_time = time.time ()
-    Uencodable_faces = Manager().Queue()
 
-    face_encodings = encode_images_task_executor(Uencodable_faces)
+
+    face_encodings, Uencodable_faces = encode_images_task_executor()
 
     # face_encodings = dict(encodings)
     # del encodings
@@ -57,13 +58,7 @@ if __name__ == '__main__':
         # Pickle the 'data' dictionary using the highest protocol available.
         pickle.dump(face_encodings, f, pickle.HIGHEST_PROTOCOL)
 
-    i = 0
-    errors = []
-    while i <= Uencodable_faces.qsize():
-        errors.append(Uencodable_faces.get())
-        i += 1
-
-    print(errors)
+    print(Uencodable_faces)
 
     exit(0)
 

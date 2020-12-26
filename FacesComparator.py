@@ -12,6 +12,7 @@ CAF_STRIP_STR = 'CAF no.'
 NON_ALPHA = re.compile('[^a-zA-Z]')
 NON_NUM = re.compile('[^0-9]')
 mobilenos_names = None
+forged_mobile_nos = list()
 # copy_dir = 'E:/TestFaceRecognition/'
 # csv_dirs = ['E:/TestFaceRecognition/csv_dir/']
 copy_dir = PARENT_DIR + 'copy_dir/'
@@ -37,7 +38,6 @@ def read_csv_executor ():
 
 
 def is_valid_face_encoding(f_encoding):
-    global mobilenos_names
     if f_encoding[1] is None:
         return False
 
@@ -56,17 +56,32 @@ def are_all_names_same(n_to_cmp):
 
 def cmp_faces(f_encoding, face_under_comparision):
     if is_valid_face_encoding(f_encoding) is False:
-        return None
+        return
 
     # match your image with the image and check if it matches
     result = face_recognition.compare_faces([f_encoding[1]], face_under_comparision[1])
 
     # check if it was a match
     if result[0]:
-        return f_encoding[0]
+        return f_encoding[0], f_encoding[2]
 
-    return None
+    return
 
+
+def copy_image_to_new_dir(new_dir, file_to_copy):
+    global mobilenos_names
+    f_name = file_to_copy.split('/')[-1]
+
+    m_no = remove_nonnum(f_name)
+
+    ext = remove_nonalpha(f_name, None)
+
+    tsp = ['', mobilenos_names[m_no][TSP]][m_no in mobilenos_names]
+    name = ['', mobilenos_names[m_no][NAME]][m_no in mobilenos_names]
+
+    file_new_path = new_dir + '/' + m_no + '_' + name + '_' + tsp + '.' + ext
+    if os.path.isdir(file_new_path) is False:
+        shutil.copyfile(file_to_copy, file_new_path)
 
 
 def compare_faces(f_encodings, mobilenos_names):
@@ -74,14 +89,33 @@ def compare_faces(f_encodings, mobilenos_names):
 
     while len(f_encodings) > 0:
         face_under_comparision = f_encodings.pop()
+
+        if face_under_comparision[0] in forged_mobile_nos:
+            continue
+
         if is_valid_face_encoding(face_under_comparision) is False:
             continue
 
-        matching_nos = p.starmap(cmp_faces, zip(f_encodings, repeat(face_under_comparision)))
+        matching_nos_paths = p.starmap(cmp_faces, zip(f_encodings, repeat(face_under_comparision)))
 
-        for matching_no in matching_nos:
-            if matching_no is not None:
-                print(face_under_comparision[0] + ':' + mobilenos_names[face_under_comparision[0]][NAME] + ' matches with ' + matching_no + ':' + mobilenos_names[matching_no][NAME])
+        matching_nos_paths = [x for x in matching_nos_paths if x is not None]
+
+        if len(matching_nos_paths) == 0:
+            continue
+
+        new_dir = copy_dir + face_under_comparision[0]
+        if os.path.isdir(new_dir) is False:
+            os.mkdir(new_dir)
+
+        copy_image_to_new_dir(new_dir, face_under_comparision[2])
+
+        for matching_nos_path in matching_nos_paths:
+
+            if matching_nos_path[0] is not None:
+                forged_mobile_nos.append(matching_nos_path[0])
+                copy_image_to_new_dir(new_dir, matching_nos_path[1])
+
+                # print(face_under_comparision[0] + ':' + mobilenos_names[face_under_comparision[0]][NAME] + ' matches with ' + matching_no + ':' + mobilenos_names[matching_no][NAME])
 
     p.close()
 
