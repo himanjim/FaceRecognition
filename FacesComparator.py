@@ -17,7 +17,7 @@ forged_mobile_nos = list()
 # csv_dirs = ['E:/TestFaceRecognition/csv_dir/']
 copy_dir = PARENT_DIR + 'copy_dir/'
 csv_dirs = [PARENT_DIR + 'csv_dir/']
-pool_size = 8
+
 
 def mobilenos_names_builder(csv_file_name):
 
@@ -59,7 +59,7 @@ def cmp_faces(f_encoding, face_under_comparision):
         return
 
     # match your image with the image and check if it matches
-    result = face_recognition.compare_faces([f_encoding[1]], face_under_comparision[1])
+    result = face_recognition.compare_faces([f_encoding[1]], face_under_comparision[1], .4)
 
     # check if it was a match
     if result[0]:
@@ -75,6 +75,10 @@ def copy_image_to_new_dir(new_dir, file_to_copy):
     m_no = remove_nonnum(f_name)
 
     ext = remove_nonalpha(f_name, None)
+
+    if m_no not in mobilenos_names:
+        print(str(m_no) + ' not in mobilenos_names map.')
+        return
 
     tsp = ['', mobilenos_names[m_no][TSP]][m_no in mobilenos_names]
     name = ['', mobilenos_names[m_no][NAME]][m_no in mobilenos_names]
