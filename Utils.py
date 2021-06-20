@@ -6,9 +6,9 @@ CAF_STRIP_STR = 'CAF no.'
 NON_ALPHA = re.compile('[^a-zA-Z]')
 NON_NUM = re.compile('[^0-9]')
 
-PARENT_DIR = 'D:/TestFaceRecognition/'
+PARENT_DIR = 'D:/TestFaceRecognition_Naveen/'
 # PARENT_DIR = 'E:/LEA_POI_crop images/'
-ENCODINGS_PICK_FILE = 'encoding_dump3'
+ENCODINGS_PICK_FILE = 'encoding_dump'
 pool_size = 16
 
 def read_dirs(dirs):

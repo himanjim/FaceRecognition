@@ -25,7 +25,7 @@ def mobilenos_names_builder(csv_file_name):
     with open(csv_file_name) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         for row in csv_reader:
-            m_names[remove_nonnum(row[2])] = {NAME: remove_nonalpha(remove_name_salutation(row[4]), CAF_STRIP_STR).lower(), TSP: remove_nonalpha(row[1], None).lower()}
+            m_names[remove_nonnum(row[2])] = {NAME: remove_nonalpha(remove_name_salutation(row[3]), CAF_STRIP_STR).lower(), TSP: remove_nonalpha(row[1], None).lower()}
 
     return m_names
 
